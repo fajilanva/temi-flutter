@@ -55,57 +55,6 @@ class FlutterTemiPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
 
         /// 保留旧版本的兼容
         @JvmStatic
-        fun registerWith(registrar: PluginRegistry.Registrar) {
-            channel = MethodChannel(registrar.messenger(), "flutter_temi")
-            val plugin = FlutterTemiPlugin()
-            channel.setMethodCallHandler(plugin)
-
-            //added
-            plugin.application_context = registrar.activity().getApplication()
-            plugin.activity = registrar.activity()
-
-
-            val onBeWithMeEventChannel = EventChannel(registrar.messenger(), OnBeWithMeStatusChangedImpl.STREAM_CHANNEL_NAME)
-            onBeWithMeEventChannel.setStreamHandler(plugin.onBeWithMeStatusChangedImpl)
-
-            val onLocationStatusChangeEventChannel = EventChannel(registrar.messenger(), GoToLocationStatusChangedImpl.STREAM_CHANNEL_NAME)
-            onLocationStatusChangeEventChannel.setStreamHandler(plugin.goToLocationStatusChangedImpl)
-
-            val onLocationsUpdatedEventChannel = EventChannel(registrar.messenger(), OnLocationsUpdatedImpl.STREAM_CHANNEL_NAME)
-            onLocationsUpdatedEventChannel.setStreamHandler(plugin.onLocationsUpdatedImpl)
-
-            val onNlpEventChannel = EventChannel(registrar.messenger(), NlpImpl.STREAM_CHANNEL_NAME)
-            onNlpEventChannel.setStreamHandler(plugin.nlpImpl)
-
-            val ttsListenerEventChannel = EventChannel(registrar.messenger(), TtsListenerImpl.STREAM_CHANNEL_NAME)
-            ttsListenerEventChannel.setStreamHandler(plugin.ttsListenerImpl)
-
-            val asrListenerEventChannel = EventChannel(registrar.messenger(), ASRListenerImpl.STREAM_CHANNEL_NAME)
-            asrListenerEventChannel.setStreamHandler(plugin.asrListenerImpl)
-
-            val wakeupWordListenerEventChannel = EventChannel(registrar.messenger(), WakeupWordListenerImpl.STREAM_CHANNEL_NAME)
-            wakeupWordListenerEventChannel.setStreamHandler(plugin.wakeupWordListenerImpl)
-
-            val onConstraintBeWithStatusListenerEventChannel = EventChannel(registrar.messenger(), OnConstraintBeWithStatusListenerImpl.STREAM_CHANNEL_NAME)
-            onConstraintBeWithStatusListenerEventChannel.setStreamHandler(plugin.onConstraintBeWithStatusListenerImpl)
-
-            //val onTelepresenceStatusChangedListenerEventChannel = EventChannel(registrar.messenger(), OnTelepresenceStatusChangedListenerImpl.STREAM_CHANNEL_NAME)
-            //onTelepresenceStatusChangedListenerEventChannel.setStreamHandler(plugin.onTelepresenceStatusChangedListenerImpl)
-
-            //val onUsersUpdatedListenerEventChannel = EventChannel(registrar.messenger(), OnUsersUpdatedListenerImpl.STREAM_CHANNEL_NAME)
-            //onUsersUpdatedListenerEventChannel.setStreamHandler(plugin.onUsersUpdatedListenerImpl)
-
-            val onPrivacyModeChangedListenerEventChannel = EventChannel(registrar.messenger(), OnPrivacyModeChangedListenerImpl.STREAM_CHANNEL_NAME)
-            onPrivacyModeChangedListenerEventChannel.setStreamHandler(plugin.onPrivacyModeChangedListenerImpl)
-
-            val onBatteryStatusChangedListenerEventChannel = EventChannel(registrar.messenger(), OnBatteryStatusChangedListenerImpl.STREAM_CHANNEL_NAME)
-            onBatteryStatusChangedListenerEventChannel.setStreamHandler(plugin.onBatteryStatusChangedListenerImpl)
-
-            val onDetectionStateChangedEventChannel = EventChannel(registrar.messenger(), OnDetectionStateChangedListenerImpl.STREAM_CHANNEL_NAME)
-            onDetectionStateChangedEventChannel.setStreamHandler(plugin.onDetectionStateChangedListenerImpl)
-
-            val onRobotReadyEventChannel = EventChannel(registrar.messenger(), OnRobotReadyListenerImpl.STREAM_CHANNEL_NAME)
-            onRobotReadyEventChannel.setStreamHandler(plugin.onRobotReadyListenerImpl)
         }
     }
 

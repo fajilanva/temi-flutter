@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
-
 class FlutterTemi {
   //Single Method Channel
   static const MethodChannel _channel = const MethodChannel('flutter_temi');
@@ -21,7 +20,7 @@ class FlutterTemi {
   static const EventChannel _nlpEventChannel =
       EventChannel('flutter_temi/nlp_stream');
 
-  static const EventChannel _onUserIntaeractionEventChannel =
+  static const EventChannel _onUserInteractionEventChannel =
       EventChannel('flutter_temi/on_user_interaction_stream');
 
   static const EventChannel _ttsEventChannel =
@@ -86,10 +85,10 @@ class FlutterTemi {
     await _channel.invokeMethod('temi_showAppList');
   }
 
-
   static temiSpeakForce(String speech) async {
     await _channel.invokeMethod('temi_speak_force', speech);
   }
+
   static temiFinisheConverstaion() async {
     await _channel.invokeMethod('temi_finishe_conversation');
   }
@@ -102,7 +101,6 @@ class FlutterTemi {
     await _channel.invokeMethod('temi_repose');
   }
 
-
   static temiGoTo(String location) async {
     await _channel.invokeMethod('temi_goto', location);
   }
@@ -112,7 +110,9 @@ class FlutterTemi {
   }
 
   static Future<List<String>> temiGetLocations() async {
-    return await _channel.invokeListMethod('temi_get_locations');
+    final result =
+        await _channel.invokeListMethod<String>('temi_get_locations');
+    return result ?? <String>[];
   }
 
   static Future<bool> temiDeleteLocation(String location) async {
@@ -164,11 +164,15 @@ class FlutterTemi {
   }
 
   static Future<List<Map<String, dynamic>>> get allContacts async {
-    return await _channel.invokeListMethod('temi_get_contacts');
+    final List<dynamic>? result =
+        await _channel.invokeListMethod('temi_get_contacts');
+    return result?.cast<Map<String, dynamic>>() ?? <Map<String, dynamic>>[];
   }
 
   static Future<List<Map<String, dynamic>>> get recentCalls async {
-    return await _channel.invokeListMethod('temi_get_recent_calls');
+    final List<dynamic>? result =
+        await _channel.invokeListMethod('temi_get_recent_calls');
+    return result?.cast<Map<String, dynamic>>() ?? <Map<String, dynamic>>[];
   }
 
   static temiSetWakeup(bool disable) async {
@@ -184,7 +188,7 @@ class FlutterTemi {
   }
 
   static Stream<String> temiSubscribeToOnBeWithMeEvents() {
-    return _onBeWithMeEventChannel.receiveBroadcastStream();
+    return _onBeWithMeEventChannel.receiveBroadcastStream().cast<String>();
   }
 
   static Stream<dynamic> temiSubscribeToOnLocationStatusChangeEvents() {
@@ -192,19 +196,42 @@ class FlutterTemi {
   }
 
   static Stream<List<dynamic>> temiSubscribeToOnLocationsUpdatedEvents() {
-    return _onLocationsUpdatedEventChannel.receiveBroadcastStream();
+    return _onLocationsUpdatedEventChannel
+        .receiveBroadcastStream()
+        .map((event) {
+      if (event is List<dynamic>) {
+        return event;
+      } else {
+        throw Exception(
+            'Expected a List<dynamic> but received ${event.runtimeType}');
+      }
+    });
   }
 
   static Stream<String> temiSubscribeToNlpEvents() {
-    return _nlpEventChannel.receiveBroadcastStream();
+    return _nlpEventChannel.receiveBroadcastStream().cast<String>();
   }
 
   static Stream<bool> temiSubscribeToOnUserInteractionEvents() {
-    return _onUserIntaeractionEventChannel.receiveBroadcastStream();
+    return _onUserInteractionEventChannel.receiveBroadcastStream().map((event) {
+      if (event is bool) {
+        return event;
+      } else {
+        // Handle unexpected types
+        throw Exception('Expected a bool but received ${event.runtimeType}');
+      }
+    });
   }
 
   static Stream<Map<String, dynamic>> temiSubscribeToTtsEvents() {
-    return _ttsEventChannel.receiveBroadcastStream();
+    return _ttsEventChannel.receiveBroadcastStream().map((event) {
+      if (event is Map<String, dynamic>) {
+        return event;
+      } else {
+        throw Exception(
+            'Expected a Map<String, dynamic> but received ${event.runtimeType}');
+      }
+    });
   }
 
   static Stream<dynamic> temiSubscribeToAsrEvents() {
@@ -212,11 +239,20 @@ class FlutterTemi {
   }
 
   static Stream<Map<String, dynamic>> temiSubscribeToWakeupWordEvents() {
-    return _wakeupWordEventChannel.receiveBroadcastStream();
+    return _wakeupWordEventChannel.receiveBroadcastStream().map((event) {
+      if (event is Map<String, dynamic>) {
+        return event;
+      } else {
+        throw Exception(
+            'Expected a Map<String, dynamic> but received ${event.runtimeType}');
+      }
+    });
   }
 
   static Stream<bool> temiSubscribeToOnConstraintBeWithStatusChangedEvents() {
-    return _constraintBeWithStatusEventChannel.receiveBroadcastStream();
+    return _constraintBeWithStatusEventChannel
+        .receiveBroadcastStream()
+        .cast<bool>();
   }
 
 //  static Stream<Map<String, dynamic>> temiSubscribeToOnTelepresenceStatusChangedEvents() {
@@ -228,12 +264,23 @@ class FlutterTemi {
 //  }
 
   static Stream<bool> temiSubscribeToOnPrivacyModeChangedEvents() {
-    return _onPrivacyModeChangedEventChannel.receiveBroadcastStream();
+    return _onPrivacyModeChangedEventChannel
+        .receiveBroadcastStream()
+        .cast<bool>();
   }
 
   static Stream<Map<String, dynamic>>
       temiSubscribeToOnBatteryStatusChangedEvents() {
-    return _onBatteryStatusChangedEventChannel.receiveBroadcastStream();
+    return _onBatteryStatusChangedEventChannel
+        .receiveBroadcastStream()
+        .map((event) {
+      if (event is Map<String, dynamic>) {
+        return event;
+      } else {
+        throw Exception(
+            'Expected a Map<String, dynamic> but received ${event.runtimeType}');
+      }
+    });
   }
 
   static Stream<dynamic> temiSubscribeToDetectionStateChangedEvents() {
@@ -241,6 +288,6 @@ class FlutterTemi {
   }
 
   static Stream<bool> temiSubscribeToRobotReadyEvents() {
-    return _onRobotReadyEventChannel.receiveBroadcastStream();
+    return _onRobotReadyEventChannel.receiveBroadcastStream().cast<bool>();
   }
 }

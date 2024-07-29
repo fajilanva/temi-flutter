@@ -16,9 +16,9 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool IsBusyMode = false;
-  StreamSubscription sub;
+  late StreamSubscription sub;
 
-  Map some;
+  late Map some;
 
   @override
   void initState() {
@@ -78,59 +78,59 @@ class _MyAppState extends State<MyApp> {
                     return new Text(snapshot.data.toString());
                   }
                 }),
-            FlatButton(
+            ElevatedButton(
               child: Text('Call Cyrus'),
               onPressed: () async {
                 await FlutterTemi.temiStartTelepresence(
                     "${some['name']}", "${some['userId']}");
               },
             ),
-            FlatButton(
+            ElevatedButton(
                 child: Text('Show All Apps'),
                 onPressed: () async {
                   await FlutterTemi.temiShowAppList();
                 }),
-            FlatButton(
+            ElevatedButton(
                 child: Text('Turn Kiosk'),
                 onPressed: () async {
                   await FlutterTemi.temiTurnKioskMode();
                 }),
-            FlatButton(
+            ElevatedButton(
               child: Text('Wakup'),
               onPressed: () async {
                 await FlutterTemi.temiWakeup();
               },
             ),
-            FlatButton(
+            ElevatedButton(
               child: Text('Goto Allen'),
               onPressed: () async {
                 await FlutterTemi.temiGoTo('allen');
                 await FlutterTemi.temiSpeak('Allen I am coming');
               },
             ),
-            FlatButton(
+            ElevatedButton(
               child: Text('Goto Victor'),
               onPressed: () async {
                 await FlutterTemi.temiGoTo('victor');
               },
             ),
-            FlatButton(
+            ElevatedButton(
               child: Text('Speak Victor'),
               onPressed: () async => FlutterTemi.temiSpeak('victor is Great'),
             ),
-            FlatButton(
+            ElevatedButton(
               child: Text('Save Location -- Allen'),
               onPressed: () async => FlutterTemi.temiSaveLocation('Allen'),
             ),
-            FlatButton(
+            ElevatedButton(
               child: Text('Follow me'),
               onPressed: () async => FlutterTemi.temiFollowMe(),
             ),
-            FlatButton(
+            ElevatedButton(
               child: Text('Skid Joy'),
               onPressed: () async => FlutterTemi.temiSkidJoy(2.0, 2.0),
             ),
-            FlatButton(
+            ElevatedButton(
               child: Text('Title Angle'),
               onPressed: () async {
                 var degree = -20;
@@ -152,7 +152,7 @@ class _MyAppState extends State<MyApp> {
                 SubTemi();
               },
             ),
-            FlatButton(
+            ElevatedButton(
               child: Text('Trun by'),
               onPressed: () async {
                 await FlutterTemi.temiTurnBy(90);
@@ -160,15 +160,15 @@ class _MyAppState extends State<MyApp> {
                 await FlutterTemi.temiTurnBy(-180);
               },
             ),
-            FlatButton(
+            ElevatedButton(
               child: Text('Title  by 15'),
               onPressed: () async => FlutterTemi.temiTiltBy(15),
             ),
-            FlatButton(
+            ElevatedButton(
               child: Text('Title  by 15'),
               onPressed: () async => FlutterTemi.temiTiltBy(15),
             ),
-            FlatButton(
+            ElevatedButton(
               child: Text('Repose'),
               onPressed: () async => FlutterTemi.temiRepose(),
             ),

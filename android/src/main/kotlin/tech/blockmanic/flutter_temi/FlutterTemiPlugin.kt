@@ -70,7 +70,9 @@ class FlutterTemiPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
             "temi_privacy_mode" -> result.success(robot.privacyMode)
             "temi_set_privacy_mode" -> {
                 val privacyMode = call.arguments<Boolean>()
-                robot.privacyMode = privacyMode
+                if (privacyMode != null) {
+                    robot.privacyMode = privacyMode
+                }
                 result.success(privacyMode)
             }
             "temi_battery_data" -> result.success(OnBatteryStatusChangedListenerImpl.batteryToMap(robot.batteryData!!))
@@ -84,14 +86,18 @@ class FlutterTemiPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
             }
             "temi_speak" -> {
                 val speech = call.arguments<String>()
-                val request = TtsRequest.create(speech, true)
-                robot.speak(request)
+                val request = speech?.let { TtsRequest.create(it, true) }
+                if (request != null) {
+                    robot.speak(request)
+                }
                 result.success(true)
             }
             "temi_speak_force" -> {
                 val speech = call.arguments<String>()
-                val request = TtsRequest.create(speech, false)
-                robot.speak(request)
+                val request = speech?.let { TtsRequest.create(it, false) }
+                if (request != null) {
+                    robot.speak(request)
+                }
                 result.success(true)
             }
             "temi_finishe_conversation" -> {
@@ -100,19 +106,21 @@ class FlutterTemiPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
             }
             "temi_goto" -> {
                 val location = call.arguments<String>()
-                robot.goTo(location)
+                if (location != null) {
+                    robot.goTo(location)
+                }
                 result.success(true)
             }
             "temi_save_location" -> {
                 val location = call.arguments<String>()
-                result.success(robot.saveLocation(location))
+                result.success(location?.let { robot.saveLocation(it) })
             }
             "temi_get_locations" -> {
                 result.success(robot.locations)
             }
             "temi_delete_location" -> {
                 val location = call.arguments<String>()
-                result.success(robot.deleteLocation(location))
+                result.success(location?.let { robot.deleteLocation(it) })
             }
             "temi_be_with_me" -> {
                 robot.beWithMe()
@@ -132,27 +140,33 @@ class FlutterTemiPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
             }
             "temi_skid_joy" -> {
                 val values = call.arguments<List<Double>>()
-                robot.skidJoy(values[0].toFloat(), values[1].toFloat())
+                values?.get(0)?.let { values[1].let { it1 -> robot.skidJoy(it.toFloat(), it1.toFloat()) } }
                 result.success(true)
             }
             "temi_tilt_angle" -> {
                 val tiltAngle = call.arguments<Int>()
-                robot.tiltAngle(tiltAngle)
+                if (tiltAngle != null) {
+                    robot.tiltAngle(tiltAngle)
+                }
                 result.success(true)
             }
             "temi_turn_by" -> {
                 val turnByAngle = call.arguments<Int>()
-                robot.turnBy(turnByAngle)
+                if (turnByAngle != null) {
+                    robot.turnBy(turnByAngle)
+                }
                 result.success(true)
             }
             "temi_tilt_by" -> {
                 val degrees = call.arguments<Int>()
-                robot.tiltBy(degrees)
+                if (degrees != null) {
+                    robot.tiltBy(degrees)
+                }
                 result.success(true)
             }
             "temi_start_telepresence" -> {
                 val arguments = call.arguments<List<String>>()
-                result.success(robot.startTelepresence(arguments[0], arguments[1]))
+                result.success(robot.startTelepresence(arguments!![0], arguments[1]))
             }
             "temi_user_info" -> {
                 val userInfo = robot.adminInfo!!
@@ -185,12 +199,16 @@ class FlutterTemiPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
             }
             "temi_toggle_wakeup" -> {
                 val disable = call.arguments<Boolean>()
-                robot.toggleWakeup(disable)
+                if (disable != null) {
+                    robot.toggleWakeup(disable)
+                }
                 result.success(true)
             }
             "temi_toggle_navigation_billboard" -> {
                 val hide = call.arguments<Boolean>()
-                robot.toggleNavigationBillboard(hide)
+                if (hide != null) {
+                    robot.toggleNavigationBillboard(hide)
+                }
                 result.success(true)
             }
             "temi_turnKoiskMode" -> {

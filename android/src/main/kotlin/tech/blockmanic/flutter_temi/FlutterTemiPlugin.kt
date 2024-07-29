@@ -1,6 +1,5 @@
 package tech.blockmanic.flutter_temi
 
-//import io.flutter.plugin.common.PluginRegistry.Registrar
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
@@ -14,86 +13,67 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
-import io.flutter.plugin.common.PluginRegistry
-
-//Method Call Handler can do V1 V2,
-//FlutterPlugin Give me most of the things except Activity
-//ActivityAware give me Activity
 
 class FlutterTemiPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
 
-
-    public lateinit var plugin: FlutterTemiPlugin
-
-    //    private lateinit var channel: MethodChannel
-    public lateinit var application_context: Context
-    public lateinit var activity: Activity
+    private lateinit var applicationContext: Context
+    private lateinit var activity: Activity
 
     private val robot: Robot = Robot.getInstance()
-    private val goToLocationStatusChangedImpl: GoToLocationStatusChangedImpl = GoToLocationStatusChangedImpl()
-    private val onBeWithMeStatusChangedImpl: OnBeWithMeStatusChangedImpl = OnBeWithMeStatusChangedImpl()
-    private val onLocationsUpdatedImpl: OnLocationsUpdatedImpl = OnLocationsUpdatedImpl()
-    private val nlpImpl: NlpImpl = NlpImpl()
-    private val onUserInteractionChangedImpl: OnUserInteractionChangedImpl = OnUserInteractionChangedImpl()
-    private val ttsListenerImpl: TtsListenerImpl = TtsListenerImpl()
-    private val asrListenerImpl: ASRListenerImpl = ASRListenerImpl()
+    private val goToLocationStatusChangedImpl = GoToLocationStatusChangedImpl()
+    private val onBeWithMeStatusChangedImpl = OnBeWithMeStatusChangedImpl()
+    private val onLocationsUpdatedImpl = OnLocationsUpdatedImpl()
+    private val nlpImpl = NlpImpl()
+    private val ttsListenerImpl = TtsListenerImpl()
+    private val asrListenerImpl = ASRListenerImpl()
+    private val wakeupWordListenerImpl = WakeupWordListenerImpl()
+    private val onConstraintBeWithStatusListenerImpl = OnConstraintBeWithStatusListenerImpl()
+    private val onPrivacyModeChangedListenerImpl = OnPrivacyModeChangedListenerImpl()
+    private val onBatteryStatusChangedListenerImpl = OnBatteryStatusChangedListenerImpl()
+    private val onDetectionStateChangedListenerImpl = OnDetectionStateChangedListenerImpl()
+    private val onRobotReadyListenerImpl = OnRobotReadyListenerImpl()
 
-    private val wakeupWordListenerImpl: WakeupWordListenerImpl = WakeupWordListenerImpl()
-    private val onConstraintBeWithStatusListenerImpl: OnConstraintBeWithStatusListenerImpl = OnConstraintBeWithStatusListenerImpl()
+    override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+        val channel = MethodChannel(binding.binaryMessenger, "flutter_temi")
+        channel.setMethodCallHandler(this)
 
-    //private val onTelepresenceStatusChangedListenerImpl : OnTelepresenceStatusChangedListenerImpl = OnTelepresenceStatusChangedListenerImpl()
-    //private val onUsersUpdatedListenerImpl : OnUsersUpdatedListenerImpl = OnUsersUpdatedListenerImpl()
-    private val onPrivacyModeChangedListenerImpl: OnPrivacyModeChangedListenerImpl = OnPrivacyModeChangedListenerImpl()
-    private val onBatteryStatusChangedListenerImpl: OnBatteryStatusChangedListenerImpl = OnBatteryStatusChangedListenerImpl()
-    private val onDetectionStateChangedListenerImpl: OnDetectionStateChangedListenerImpl = OnDetectionStateChangedListenerImpl()
-    private val onRobotReadyListenerImpl: OnRobotReadyListenerImpl = OnRobotReadyListenerImpl()
+        applicationContext = binding.applicationContext
 
+        setupEventChannels(binding)
+    }
 
-    companion object {
+    private fun setupEventChannels(binding: FlutterPlugin.FlutterPluginBinding) {
+        val eventChannels = mapOf(
+            OnBeWithMeStatusChangedImpl.STREAM_CHANNEL_NAME to onBeWithMeStatusChangedImpl,
+            GoToLocationStatusChangedImpl.STREAM_CHANNEL_NAME to goToLocationStatusChangedImpl,
+            OnLocationsUpdatedImpl.STREAM_CHANNEL_NAME to onLocationsUpdatedImpl,
+            NlpImpl.STREAM_CHANNEL_NAME to nlpImpl,
+            TtsListenerImpl.STREAM_CHANNEL_NAME to ttsListenerImpl,
+            ASRListenerImpl.STREAM_CHANNEL_NAME to asrListenerImpl,
+            WakeupWordListenerImpl.STREAM_CHANNEL_NAME to wakeupWordListenerImpl,
+            OnConstraintBeWithStatusListenerImpl.STREAM_CHANNEL_NAME to onConstraintBeWithStatusListenerImpl,
+            OnPrivacyModeChangedListenerImpl.STREAM_CHANNEL_NAME to onPrivacyModeChangedListenerImpl,
+            OnBatteryStatusChangedListenerImpl.STREAM_CHANNEL_NAME to onBatteryStatusChangedListenerImpl,
+            OnDetectionStateChangedListenerImpl.STREAM_CHANNEL_NAME to onDetectionStateChangedListenerImpl,
+            OnRobotReadyListenerImpl.STREAM_CHANNEL_NAME to onRobotReadyListenerImpl
+        )
 
-        private lateinit var channel: MethodChannel
-
-        /// 保留旧版本的兼容
-        @JvmStatic
+        eventChannels.forEach { (name, handler) ->
+            val eventChannel = EventChannel(binding.binaryMessenger, name)
+            eventChannel.setStreamHandler(handler)
         }
     }
 
-    init {
-        robot.addOnGoToLocationStatusChangedListener(this.goToLocationStatusChangedImpl)
-        robot.addOnBeWithMeStatusChangedListener(this.onBeWithMeStatusChangedImpl)
-        robot.addOnLocationsUpdatedListener(this.onLocationsUpdatedImpl)
-        robot.addNlpListener(this.nlpImpl)
-        robot.addOnUserInteractionChangedListener(this.onUserInteractionChangedImpl)
-        robot.addTtsListener(this.ttsListenerImpl)
-        robot.addAsrListener(this.asrListenerImpl) //asr
-        robot.addWakeupWordListener(this.wakeupWordListenerImpl)
-        robot.addOnConstraintBeWithStatusChangedListener(this.onConstraintBeWithStatusListenerImpl)
-        //robot.addOnTelepresenceStatusChangedListener(this.onTelepresenceStatusChangedListenerImpl)
-        //robot.addOnUsersUpdatedListener(this.onUsersUpdatedListenerImpl)
-        robot.addOnPrivacyModeStateChangedListener(this.onPrivacyModeChangedListenerImpl)
-        robot.addOnBatteryStatusChangedListener(this.onBatteryStatusChangedListenerImpl)
-        robot.addOnDetectionStateChangedListener(this.onDetectionStateChangedListenerImpl)
-        robot.addOnRobotReadyListener(this.onRobotReadyListenerImpl)
-
-    }
-
-
     override fun onMethodCall(call: MethodCall, result: Result) {
         when (call.method) {
-            "temi_serial_number" -> {
-                result.success(robot.serialNumber)
-            }
-            "temi_privacy_mode" -> {
-                result.success(robot.privacyMode)
-            }
+            "temi_serial_number" -> result.success(robot.serialNumber)
+            "temi_privacy_mode" -> result.success(robot.privacyMode)
             "temi_set_privacy_mode" -> {
                 val privacyMode = call.arguments<Boolean>()
                 robot.privacyMode = privacyMode
                 result.success(privacyMode)
             }
-            "temi_battery_data" -> {
-                result.success(OnBatteryStatusChangedListenerImpl.batteryToMap(robot.batteryData!!))
-            }
+            "temi_battery_data" -> result.success(OnBatteryStatusChangedListenerImpl.batteryToMap(robot.batteryData!!))
             "temi_show_top_bar" -> {
                 robot.showTopBar()
                 result.success(true)
@@ -203,7 +183,6 @@ class FlutterTemiPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
                 robot.showAppList()
                 result.success(true)
             }
-
             "temi_toggle_wakeup" -> {
                 val disable = call.arguments<Boolean>()
                 robot.toggleWakeup(disable)
@@ -215,8 +194,8 @@ class FlutterTemiPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
                 result.success(true)
             }
             "temi_turnKoiskMode" -> {
-                val activityInfo = application_context.getPackageManager()
-                        .getActivityInfo(activity.getComponentName(), PackageManager.GET_META_DATA)
+                val activityInfo = applicationContext.packageManager
+                    .getActivityInfo(activity.componentName, PackageManager.GET_META_DATA)
                 robot.onStart(activityInfo)
                 result.success(true)
             }
@@ -224,81 +203,21 @@ class FlutterTemiPlugin : MethodCallHandler, FlutterPlugin, ActivityAware {
                 robot.repose()
                 result.success(true)
             }
-
-            else -> {
-                result.notImplemented()
-            }
+            else -> result.notImplemented()
         }
-    }
-
-    override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        val channel = MethodChannel(binding.binaryMessenger, "flutter_temi")
-        plugin = FlutterTemiPlugin()
-        application_context = binding.applicationContext
-        channel.setMethodCallHandler(this)
-
-
-        val onBeWithMeEventChannel = EventChannel(binding.binaryMessenger, OnBeWithMeStatusChangedImpl.STREAM_CHANNEL_NAME)
-        onBeWithMeEventChannel.setStreamHandler(plugin.onBeWithMeStatusChangedImpl)
-
-        val onLocationStatusChangeEventChannel = EventChannel(binding.binaryMessenger, GoToLocationStatusChangedImpl.STREAM_CHANNEL_NAME)
-        onLocationStatusChangeEventChannel.setStreamHandler(plugin.goToLocationStatusChangedImpl)
-
-        val onLocationsUpdatedEventChannel = EventChannel(binding.binaryMessenger, OnLocationsUpdatedImpl.STREAM_CHANNEL_NAME)
-        onLocationsUpdatedEventChannel.setStreamHandler(plugin.onLocationsUpdatedImpl)
-
-        val onNlpEventChannel = EventChannel(binding.binaryMessenger, NlpImpl.STREAM_CHANNEL_NAME)
-        onNlpEventChannel.setStreamHandler(plugin.nlpImpl)
-
-        val ttsListenerEventChannel = EventChannel(binding.binaryMessenger, TtsListenerImpl.STREAM_CHANNEL_NAME)
-        ttsListenerEventChannel.setStreamHandler(plugin.ttsListenerImpl)
-
-        val asrListenerEventChannel = EventChannel(binding.binaryMessenger, ASRListenerImpl.STREAM_CHANNEL_NAME)
-        asrListenerEventChannel.setStreamHandler(plugin.asrListenerImpl)
-
-        val wakeupWordListenerEventChannel = EventChannel(binding.binaryMessenger, WakeupWordListenerImpl.STREAM_CHANNEL_NAME)
-        wakeupWordListenerEventChannel.setStreamHandler(plugin.wakeupWordListenerImpl)
-
-        val onConstraintBeWithStatusListenerEventChannel = EventChannel(binding.binaryMessenger, OnConstraintBeWithStatusListenerImpl.STREAM_CHANNEL_NAME)
-        onConstraintBeWithStatusListenerEventChannel.setStreamHandler(plugin.onConstraintBeWithStatusListenerImpl)
-
-        //val onTelepresenceStatusChangedListenerEventChannel = EventChannel(registrar.messenger(), OnTelepresenceStatusChangedListenerImpl.STREAM_CHANNEL_NAME)
-        //onTelepresenceStatusChangedListenerEventChannel.setStreamHandler(plugin.onTelepresenceStatusChangedListenerImpl)
-
-        //val onUsersUpdatedListenerEventChannel = EventChannel(registrar.messenger(), OnUsersUpdatedListenerImpl.STREAM_CHANNEL_NAME)
-        //onUsersUpdatedListenerEventChannel.setStreamHandler(plugin.onUsersUpdatedListenerImpl)
-
-        val onPrivacyModeChangedListenerEventChannel = EventChannel(binding.binaryMessenger, OnPrivacyModeChangedListenerImpl.STREAM_CHANNEL_NAME)
-        onPrivacyModeChangedListenerEventChannel.setStreamHandler(plugin.onPrivacyModeChangedListenerImpl)
-
-        val onBatteryStatusChangedListenerEventChannel = EventChannel(binding.binaryMessenger, OnBatteryStatusChangedListenerImpl.STREAM_CHANNEL_NAME)
-        onBatteryStatusChangedListenerEventChannel.setStreamHandler(plugin.onBatteryStatusChangedListenerImpl)
-
-        val onDetectionStateChangedEventChannel = EventChannel(binding.binaryMessenger, OnDetectionStateChangedListenerImpl.STREAM_CHANNEL_NAME)
-        onDetectionStateChangedEventChannel.setStreamHandler(plugin.onDetectionStateChangedListenerImpl)
-
-        val onRobotReadyEventChannel = EventChannel(binding.binaryMessenger, OnRobotReadyListenerImpl.STREAM_CHANNEL_NAME)
-        onRobotReadyEventChannel.setStreamHandler(plugin.onRobotReadyListenerImpl)
-    }
-
-    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         activity = binding.activity
-
     }
 
-    override fun onDetachedFromActivityForConfigChanges() {
-        
-    }
+    override fun onDetachedFromActivityForConfigChanges() {}
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
         activity = binding.activity
     }
 
-    override fun onDetachedFromActivity() {
+    override fun onDetachedFromActivity() {}
 
-    }
+    override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {}
 }
